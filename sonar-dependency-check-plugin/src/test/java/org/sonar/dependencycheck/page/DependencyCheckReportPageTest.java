@@ -17,28 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.dependencycheck;
+package org.sonar.dependencycheck.page;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
-import org.sonar.api.Plugin;
-import org.sonar.api.SonarEdition;
-import org.sonar.api.SonarQubeSide;
-import org.sonar.api.SonarRuntime;
-import org.sonar.api.internal.PluginContextImpl;
-import org.sonar.api.internal.SonarRuntimeImpl;
-import org.sonar.api.utils.Version;
+import org.sonar.api.web.page.Context;
+import org.sonar.api.web.page.Page;
 
-class DependencyCheckPluginTest {
+class DependencyCheckReportPageTest {
 
     @Test
-    void testExtensions() {
-        SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(7, 9), SonarQubeSide.SCANNER,
-                SonarEdition.COMMUNITY);
-        Plugin.Context context = new PluginContextImpl.Builder().setSonarRuntime(runtime).build();
-        DependencyCheckPlugin plugin = new DependencyCheckPlugin();
-        plugin.define(context);
-        assertEquals(16, context.getExtensions().size());
+    void testPage() {
+        DependencyCheckReportPage reportPage = new DependencyCheckReportPage();
+        Context context = new Context();
+        reportPage.define(context);
+        Page report_page = context.getPages().iterator().next();
+        assertEquals("Dependency-Check", report_page.getName());
+        assertEquals("dependencycheck/report_page", report_page.getKey());
+        assertFalse(report_page.isAdmin());
     }
+
 }
