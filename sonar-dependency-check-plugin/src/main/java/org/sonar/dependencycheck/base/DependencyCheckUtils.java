@@ -58,10 +58,32 @@ public final class DependencyCheckUtils {
         }
     }
 
+    /**
+     * Maps a CVSS score to the five impact severities. A negative threshold
+     * disables its level. Defaults keep the historic behaviour and add a
+     * BLOCKER tier for scores of 9.0 and above; INFO is only reachable when
+     * the LOW threshold is raised above zero.
+     */
+    public static Severity cvssToSonarQubeSeverity(Float cvssScore, Float blocker, Float high, Float medium, Float low) {
+        if (blocker != null && blocker >= 0 && cvssScore >= blocker) {
+            return Severity.BLOCKER;
+        } else if (high != null && high >= 0 && cvssScore >= high) {
+            return Severity.HIGH;
+        } else if (medium != null && medium >= 0 && cvssScore >= medium) {
+            return Severity.MEDIUM;
+        } else if (low == null || low < 0 || cvssScore >= low) {
+            return Severity.LOW;
+        } else {
+            return Severity.INFO;
+        }
+    }
+
     public static Severity cvssToSonarQubeSeverity(Float cvssScore, Configuration config) {
+        Float severityBlocker = config.getFloat(DependencyCheckConstants.SEVERITY_BLOCKER).orElse(DependencyCheckConstants.SEVERITY_BLOCKER_DEFAULT);
         Float severityHigh = config.getFloat(DependencyCheckConstants.SEVERITY_HIGH).orElse(DependencyCheckConstants.SEVERITY_HIGH_DEFAULT);
         Float severityMedium = config.getFloat(DependencyCheckConstants.SEVERITY_MEDIUM).orElse(DependencyCheckConstants.SEVERITY_MEDIUM_DEFAULT);
-        return DependencyCheckUtils.cvssToSonarQubeSeverity(cvssScore, severityHigh, severityMedium);
+        Float severityLow = config.getFloat(DependencyCheckConstants.SEVERITY_LOW).orElse(DependencyCheckConstants.SEVERITY_LOW_DEFAULT);
+        return DependencyCheckUtils.cvssToSonarQubeSeverity(cvssScore, severityBlocker, severityHigh, severityMedium, severityLow);
     }
 
     public static String getRuleKey(Configuration config) {

@@ -48,6 +48,15 @@ public class DependencyCheckConfiguration {
                         .description("path to the 'dependency-check-report.html' file")
                         .defaultValue(DependencyCheckConstants.HTML_REPORT_PATH_DEFAULT)
                         .build(),
+                PropertyDefinition.builder(DependencyCheckConstants.SEVERITY_BLOCKER)
+                        .onConfigScopes(ConfigScope.PROJECT)
+                        .subCategory(DependencyCheckConstants.SUB_CATEGORY_SEVERITIES)
+                        .name("Blocker")
+                        .description("Minimum score for blocker issues or -1 to deactivate blocker issues.")
+                        .defaultValue(Float.toString(DependencyCheckConstants.SEVERITY_BLOCKER_DEFAULT))
+                        .type(PropertyType.FLOAT)
+                        .index(0)
+                        .build(),
                 PropertyDefinition.builder(DependencyCheckConstants.SEVERITY_HIGH)
                         .deprecatedKey("sonar.dependencyCheck.severity.critical")
                         .onConfigScopes(ConfigScope.PROJECT)
