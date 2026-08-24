@@ -49,9 +49,9 @@ public final class DependencyCheckUtils {
     }
 
     public static Severity cvssToSonarQubeSeverity(Float cvssScore, Float high, Float medium) {
-        if (high >= 0 && cvssScore >= high) {
+        if (high != null && high >= 0 && cvssScore >= high) {
             return Severity.HIGH;
-        } else if (medium >= 0 && cvssScore >= medium) {
+        } else if (medium != null && medium >= 0 && cvssScore >= medium) {
             return Severity.MEDIUM;
         } else {
             return Severity.LOW;
