@@ -79,6 +79,26 @@ public class DependencyCheckSensor implements ProjectSensor {
         return Optional.empty();
     }
 
+    /**
+     * The analysed branch for the report header. An explicitly passed
+     * sonar.branch.name wins; the ALM integrations auto-configure the branch
+     * outside of the analysis properties, so common CI variables serve as a
+     * fallback.
+     */
+    private static String resolveBranch(SensorContext context) {
+        String branch = context.config().get("sonar.branch.name").orElse("");
+        if (!branch.isBlank()) {
+            return branch;
+        }
+        for (String envVar : new String[] {"CI_COMMIT_REF_NAME", "GITHUB_REF_NAME", "BRANCH_NAME"}) {
+            String value = System.getenv(envVar);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
+    }
+
     private void uploadHTMLReport(SensorContext context) {
         String mode = context.config().get(DependencyCheckConstants.HTML_REPORT_MODE_PROPERTY)
                 .orElse(DependencyCheckConstants.HTML_REPORT_MODE_DEFAULT);
@@ -104,8 +124,7 @@ public class DependencyCheckSensor implements ProjectSensor {
                             mode, fullLength, htmlReport.length());
                 }
                 String fullReportUrl = context.config().get(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY).orElse("");
-                String branch = context.config().get("sonar.branch.name").orElse("");
-                htmlReport = HtmlReportSummarizer.injectHeader(htmlReport, fullReportUrl, branch);
+                htmlReport = HtmlReportSummarizer.injectHeader(htmlReport, fullReportUrl, resolveBranch(context));
                 LOGGER.info("Upload Dependency-Check HTML-Report");
                 context.<String>newMeasure().forMetric(DependencyCheckMetrics.REPORT).on(context.project())
                         .withValue(htmlReport).save();
