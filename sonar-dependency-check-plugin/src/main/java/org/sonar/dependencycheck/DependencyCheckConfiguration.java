@@ -48,6 +48,29 @@ public class DependencyCheckConfiguration {
                         .description("path to the 'dependency-check-report.html' file")
                         .defaultValue(DependencyCheckConstants.HTML_REPORT_PATH_DEFAULT)
                         .build(),
+                PropertyDefinition.builder(DependencyCheckConstants.HTML_REPORT_MODE_PROPERTY)
+                        .onConfigScopes(ConfigScope.PROJECT)
+                        .subCategory(DependencyCheckConstants.SUB_CATEGORY_PATHS)
+                        .name("HTML report mode")
+                        .description("What to store in SonarQube: 'full' - the whole HTML report, "
+                                + "'summary' - scan information and the summary table only "
+                                + "(per-dependency details stay in the CI artifact), "
+                                + "'off' - do not store the HTML report at all.")
+                        .defaultValue(DependencyCheckConstants.HTML_REPORT_MODE_DEFAULT)
+                        .type(PropertyType.SINGLE_SELECT_LIST)
+                        .options(DependencyCheckConstants.HTML_REPORT_MODE_FULL,
+                                DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY,
+                                DependencyCheckConstants.HTML_REPORT_MODE_OFF)
+                        .build(),
+                PropertyDefinition.builder(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY)
+                        .onConfigScopes(ConfigScope.PROJECT)
+                        .subCategory(DependencyCheckConstants.SUB_CATEGORY_PATHS)
+                        .name("Full report URL")
+                        .description("Optional http(s) link to the full report (for example a CI artifact). "
+                                + "When set, it is shown as a banner at the top of the report stored in SonarQube. "
+                                + "Usually passed from CI, e.g. -Dsonar.dependencyCheck.fullReportUrl=$JOB_URL/artifacts/...")
+                        .defaultValue("")
+                        .build(),
                 PropertyDefinition.builder(DependencyCheckConstants.SEVERITY_BLOCKER)
                         .onConfigScopes(ConfigScope.PROJECT)
                         .subCategory(DependencyCheckConstants.SUB_CATEGORY_SEVERITIES)

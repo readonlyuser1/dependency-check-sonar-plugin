@@ -99,7 +99,7 @@ export default class DependencyCheckReportApp extends React.PureComponent {
     if(!this.state.data.includes("Dependency-Check")){
       // IFrame
       return (<div className="page dependency-check-report-container" >
-                <iframe sandbox="allow-scripts allow-same-origin" height={this.state.height} srcDoc={this.state.data} style={{border: "none"}} />
+                <iframe sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" height={this.state.height} srcDoc={this.state.data} style={{border: "none"}} />
               </div>);
     } else {
       // Open in new tab (avoid endless 'loading...' and present the URL by using an Event Listener)

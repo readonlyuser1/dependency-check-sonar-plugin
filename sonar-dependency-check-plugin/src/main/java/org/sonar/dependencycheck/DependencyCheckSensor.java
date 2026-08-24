@@ -41,6 +41,7 @@ import org.sonar.dependencycheck.parser.element.Analysis;
 import org.sonar.dependencycheck.parser.element.AnalysisException;
 import org.sonar.dependencycheck.reason.DependencyReasonSearcher;
 import org.sonar.dependencycheck.report.HtmlReportFile;
+import org.sonar.dependencycheck.report.HtmlReportSummarizer;
 import org.sonar.dependencycheck.report.JsonReportFile;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -78,10 +79,25 @@ public class DependencyCheckSensor implements ProjectSensor {
     }
 
     private void uploadHTMLReport(SensorContext context) {
+        String mode = context.config().get(DependencyCheckConstants.HTML_REPORT_MODE_PROPERTY)
+                .orElse(DependencyCheckConstants.HTML_REPORT_MODE_DEFAULT);
+        if (DependencyCheckConstants.HTML_REPORT_MODE_OFF.equalsIgnoreCase(mode)) {
+            LOGGER.info("Dependency-Check HTML-Report upload is turned off ({}={})",
+                    DependencyCheckConstants.HTML_REPORT_MODE_PROPERTY, mode);
+            return;
+        }
         try {
             HtmlReportFile htmlReportFile = HtmlReportFile.getHtmlReport(context.config(), fileSystem, pathResolver);
             String htmlReport = htmlReportFile.getReportContent();
             if (htmlReport != null) {
+                if (DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY.equalsIgnoreCase(mode)) {
+                    int fullLength = htmlReport.length();
+                    htmlReport = HtmlReportSummarizer.summarize(htmlReport);
+                    LOGGER.info("Dependency-Check HTML-Report trimmed to summary ({} -> {} characters)",
+                            fullLength, htmlReport.length());
+                }
+                String fullReportUrl = context.config().get(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY).orElse("");
+                htmlReport = HtmlReportSummarizer.injectFullReportLink(htmlReport, fullReportUrl);
                 LOGGER.info("Upload Dependency-Check HTML-Report");
                 context.<String>newMeasure().forMetric(DependencyCheckMetrics.REPORT).on(context.project())
                         .withValue(htmlReport).save();
