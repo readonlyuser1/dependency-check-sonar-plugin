@@ -34,7 +34,10 @@ class HtmlReportSummarizerTest {
             + "<ul><li class=\"scaninfo hidden\">engine version</li></ul>\n"
             + "<div class=\"\">\n"
             + "<h2 class=\"\">Summary</h2>\n"
-            + "<table id=\"summaryTable\"><tr class=\"notvulnerable\"><td>dep</td></tr></table>\n"
+            + "<table id=\"summaryTable\" class=\"lined\">"
+            + "<thead><tr style=\"text-align:left\"><th>Dependency</th></tr></thead>"
+            + "<tr class=\" vulnerable\"><td>bad-dep</td></tr>"
+            + "<tr class=\"notvulnerable\"><td>good-dep</td></tr></table>\n"
             + "<h2 id=\"header-dependencies\">Dependencies (vulnerable)</h2>\n"
             + "<h3>huge details</h3><p>lots of text lots of text lots of text lots of text"
             + " lots of text lots of text lots of text lots of text lots of text lots of text"
@@ -69,6 +72,42 @@ class HtmlReportSummarizerTest {
         String broken = "This report contains data retrieved from <div>x</div>"
                 + "<h2 id=\"header-dependencies\">Dependencies</h2>";
         assertEquals(broken, HtmlReportSummarizer.summarize(broken));
+    }
+
+    @Test
+    void vulnerableOnlyKeepsOnlyVulnerableRows() {
+        String slim = HtmlReportSummarizer.summarizeVulnerableOnly(REPORT);
+        assertTrue(slim.contains("bad-dep"));
+        assertFalse(slim.contains("good-dep"));
+        assertFalse(slim.contains("Scan Information"));
+        assertFalse(slim.contains("huge details"));
+        assertTrue(slim.contains("id=\"summaryTableVulnerable\""));
+        assertFalse(slim.contains("id=\"summaryTableAll\""));
+        assertTrue(slim.contains("<th>Dependency</th>"), "header row must survive");
+        assertTrue(slim.contains("Summary of Vulnerable Dependencies"));
+        assertTrue(slim.contains("This report contains data retrieved from"));
+        assertTrue(slim.endsWith("</body>\n</html>"));
+    }
+
+    @Test
+    void splitTablesKeepsBothTablesExpanded() {
+        String slim = HtmlReportSummarizer.summarizeSplitTables(REPORT);
+        assertTrue(slim.contains("id=\"summaryTableVulnerable\""));
+        assertTrue(slim.contains("id=\"summaryTableAll\""));
+        assertTrue(slim.contains("Summary of All Dependencies"));
+        assertFalse(slim.contains("class=\"notvulnerable\""), "all-table rows must be visible");
+        int allTable = slim.indexOf("id=\"summaryTableAll\"");
+        assertTrue(slim.indexOf("good-dep", allTable) > 0, "all-table keeps non-vulnerable rows");
+        assertFalse(slim.contains("Scan Information"));
+        assertFalse(slim.contains("huge details"));
+        assertTrue(slim.contains("stupidtable"), "sorting init for the copies expected");
+    }
+
+    @Test
+    void tablesOnlyModesKeepReportWhenMarkersAreMissing() {
+        String noMarkers = "<html><body><p>some other layout</p></body></html>";
+        assertEquals(noMarkers, HtmlReportSummarizer.summarizeVulnerableOnly(noMarkers));
+        assertEquals(noMarkers, HtmlReportSummarizer.summarizeSplitTables(noMarkers));
     }
 
     @Test

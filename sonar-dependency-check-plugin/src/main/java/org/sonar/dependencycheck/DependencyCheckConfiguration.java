@@ -52,14 +52,18 @@ public class DependencyCheckConfiguration {
                         .onConfigScopes(ConfigScope.PROJECT)
                         .subCategory(DependencyCheckConstants.SUB_CATEGORY_PATHS)
                         .name("HTML report mode")
-                        .description("What to store in SonarQube: 'full' - the whole HTML report, "
-                                + "'summary' - scan information and the summary table only "
-                                + "(per-dependency details stay in the CI artifact), "
-                                + "'off' - do not store the HTML report at all.")
+                        .description("What to store in SonarQube: 'full' - the whole HTML report; "
+                                + "'summary' - scan information and the summary table with its toggle; "
+                                + "'summary-vulnerable' - only the table of vulnerable dependencies; "
+                                + "'summary-split' - two expanded tables, vulnerable and all dependencies; "
+                                + "'off' - do not store the HTML report at all. "
+                                + "Per-dependency details always stay in the report file itself (e.g. a CI artifact).")
                         .defaultValue(DependencyCheckConstants.HTML_REPORT_MODE_DEFAULT)
                         .type(PropertyType.SINGLE_SELECT_LIST)
                         .options(DependencyCheckConstants.HTML_REPORT_MODE_FULL,
                                 DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY,
+                                DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY_VULNERABLE,
+                                DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY_SPLIT,
                                 DependencyCheckConstants.HTML_REPORT_MODE_OFF)
                         .build(),
                 PropertyDefinition.builder(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY)

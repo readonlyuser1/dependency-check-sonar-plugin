@@ -91,11 +91,17 @@ public class DependencyCheckSensor implements ProjectSensor {
             HtmlReportFile htmlReportFile = HtmlReportFile.getHtmlReport(context.config(), fileSystem, pathResolver);
             String htmlReport = htmlReportFile.getReportContent();
             if (htmlReport != null) {
+                int fullLength = htmlReport.length();
                 if (DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY.equalsIgnoreCase(mode)) {
-                    int fullLength = htmlReport.length();
                     htmlReport = HtmlReportSummarizer.summarize(htmlReport);
-                    LOGGER.info("Dependency-Check HTML-Report trimmed to summary ({} -> {} characters)",
-                            fullLength, htmlReport.length());
+                } else if (DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY_VULNERABLE.equalsIgnoreCase(mode)) {
+                    htmlReport = HtmlReportSummarizer.summarizeVulnerableOnly(htmlReport);
+                } else if (DependencyCheckConstants.HTML_REPORT_MODE_SUMMARY_SPLIT.equalsIgnoreCase(mode)) {
+                    htmlReport = HtmlReportSummarizer.summarizeSplitTables(htmlReport);
+                }
+                if (htmlReport.length() != fullLength) {
+                    LOGGER.info("Dependency-Check HTML-Report trimmed by mode '{}' ({} -> {} characters)",
+                            mode, fullLength, htmlReport.length());
                 }
                 String fullReportUrl = context.config().get(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY).orElse("");
                 htmlReport = HtmlReportSummarizer.injectFullReportLink(htmlReport, fullReportUrl);

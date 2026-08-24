@@ -36,6 +36,8 @@ public final class DependencyCheckConstants {
 
     public static final String HTML_REPORT_MODE_FULL = "full";
     public static final String HTML_REPORT_MODE_SUMMARY = "summary";
+    public static final String HTML_REPORT_MODE_SUMMARY_VULNERABLE = "summary-vulnerable";
+    public static final String HTML_REPORT_MODE_SUMMARY_SPLIT = "summary-split";
     public static final String HTML_REPORT_MODE_OFF = "off";
     public static final String HTML_REPORT_MODE_DEFAULT = HTML_REPORT_MODE_FULL;
     public static final Float SEVERITY_BLOCKER_DEFAULT = 9.0f;

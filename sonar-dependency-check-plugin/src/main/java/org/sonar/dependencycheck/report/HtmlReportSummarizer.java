@@ -46,6 +46,9 @@ public final class HtmlReportSummarizer {
     private static final String FOOTER_DIV = "<div>";
     private static final String BODY_OPEN = "<body";
     private static final String BODY_CLOSE = "</body>";
+    private static final String TABLE_MARKER = "<table id=\"summaryTable\"";
+    private static final String TABLE_END = "</table>";
+    private static final String NOT_VULNERABLE_CLASS = "notvulnerable";
 
     private HtmlReportSummarizer() {
         // utility class
@@ -85,6 +88,89 @@ public final class HtmlReportSummarizer {
     private static String expandScanInformationScript() {
         return "\n<script type=\"text/javascript\">window.addEventListener('load',function(){"
                 + "var t=document.getElementById('scanInformationToggle');if(t){t.click();}});</script>\n";
+    }
+
+    /**
+     * Keeps only the summary table filtered down to vulnerable dependencies.
+     * The report head (styles, scripts) and the attribution footer survive;
+     * scan information and everything else is dropped.
+     */
+    public static String summarizeVulnerableOnly(String html) {
+        return buildTablesOnly(html, false);
+    }
+
+    /**
+     * Keeps two expanded tables and nothing else: first the vulnerable
+     * dependencies, then all dependencies with every row visible (the
+     * original report hides non-vulnerable rows behind a toggle).
+     */
+    public static String summarizeSplitTables(String html) {
+        return buildTablesOnly(html, true);
+    }
+
+    private static String buildTablesOnly(String html, boolean includeAllTable) {
+        int bodyTag = html.indexOf(BODY_OPEN);
+        int bodyEnd = bodyTag < 0 ? -1 : html.indexOf('>', bodyTag);
+        int tableStart = html.indexOf(TABLE_MARKER);
+        int tableEnd = tableStart < 0 ? -1 : html.indexOf(TABLE_END, tableStart);
+        int footerText = html.lastIndexOf(FOOTER_MARKER);
+        int footerDiv = footerText < 0 ? -1 : html.lastIndexOf(FOOTER_DIV, footerText);
+        int bodyClose = html.lastIndexOf(BODY_CLOSE);
+        if (bodyEnd < 0 || tableEnd < 0 || footerDiv < tableEnd || bodyClose < footerDiv) {
+            return html;
+        }
+        String table = html.substring(tableStart, tableEnd + TABLE_END.length());
+        StringBuilder out = new StringBuilder(html.length() / 4);
+        out.append(html, 0, bodyEnd + 1);
+        out.append("\n<h2>Summary</h2>\n");
+        out.append("<p><span>Summary of Vulnerable Dependencies</span></p>\n");
+        out.append(removeRowsWithClass(table, NOT_VULNERABLE_CLASS)
+                .replace(TABLE_MARKER, "<table id=\"summaryTableVulnerable\""));
+        if (includeAllTable) {
+            out.append("\n<p><span>Summary of All Dependencies</span></p>\n");
+            // The original report hides these rows via the CSS class; the
+            // class is dropped so the copy is expanded without any toggle.
+            out.append(table
+                    .replace("class=\"" + NOT_VULNERABLE_CLASS + "\"", "class=\"\"")
+                    .replace(TABLE_MARKER, "<table id=\"summaryTableAll\""));
+        }
+        // The report wires sorting to the original table id only; the copies
+        // need their own initialisation. Guarded: no jQuery - no sorting,
+        // but the tables still render.
+        out.append("\n<script type=\"text/javascript\">window.addEventListener('load',function(){")
+                .append("if(window.$&&$.fn&&$.fn.stupidtable){$(\"#summaryTableVulnerable\").stupidtable();")
+                .append("$(\"#summaryTableAll\").stupidtable();}});</script>\n");
+        out.append(html, footerDiv, bodyClose);
+        out.append("</body>\n</html>");
+        return out.toString();
+    }
+
+    /**
+     * Drops every table row whose opening tag carries the given class token.
+     */
+    private static String removeRowsWithClass(String table, String classToken) {
+        StringBuilder out = new StringBuilder(table.length());
+        int pos = 0;
+        while (true) {
+            int tr = table.indexOf("<tr", pos);
+            if (tr < 0) {
+                out.append(table, pos, table.length());
+                break;
+            }
+            int openEnd = table.indexOf('>', tr);
+            int close = table.indexOf("</tr>", tr);
+            if (openEnd < 0 || close < 0) {
+                out.append(table, pos, table.length());
+                break;
+            }
+            close += "</tr>".length();
+            out.append(table, pos, tr);
+            if (!table.substring(tr, openEnd + 1).contains(classToken)) {
+                out.append(table, tr, close);
+            }
+            pos = close;
+        }
+        return out.toString();
     }
 
     /**
