@@ -104,7 +104,8 @@ public class DependencyCheckSensor implements ProjectSensor {
                             mode, fullLength, htmlReport.length());
                 }
                 String fullReportUrl = context.config().get(DependencyCheckConstants.FULL_REPORT_URL_PROPERTY).orElse("");
-                htmlReport = HtmlReportSummarizer.injectFullReportLink(htmlReport, fullReportUrl);
+                String branch = context.config().get("sonar.branch.name").orElse("");
+                htmlReport = HtmlReportSummarizer.injectHeader(htmlReport, fullReportUrl, branch);
                 LOGGER.info("Upload Dependency-Check HTML-Report");
                 context.<String>newMeasure().forMetric(DependencyCheckMetrics.REPORT).on(context.project())
                         .withValue(htmlReport).save();

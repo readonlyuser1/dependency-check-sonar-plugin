@@ -3,11 +3,12 @@
 Maintenance fork of [dependency-check-sonar-plugin](https://github.com/dependency-check/dependency-check-sonar-plugin), branch `fork-6.x`. Differences from upstream:
 
 - The HTML report page is restored (revert of upstream [#1068](https://github.com/dependency-check/dependency-check-sonar-plugin/pull/1068)).
-- `sonar.dependencyCheck.htmlReportMode` controls what is stored in SonarQube: `full` (default) - the whole report; `summary` - scan information plus the summary table with its toggle; `summary-vulnerable` - only the table of vulnerable dependencies; `summary-split` - two expanded tables (vulnerable and all dependencies); `off` - nothing.
+- `sonar.dependencyCheck.htmlReportMode` controls what is stored in SonarQube: `full` (default) - the whole report; `summary` - scan information (statically expanded) plus both summary tables (vulnerable and all, expanded); `summary-vulnerable` - only the table of vulnerable dependencies; `summary-split` - two expanded tables (vulnerable and all dependencies); `off` - nothing.
 - `sonar.dependencyCheck.fullReportUrl` renders a banner link to the full report (e.g. a CI artifact) at the top of the stored report.
 - CVSS-to-severity mapping gains a BLOCKER tier (`sonar.dependencyCheck.severity.blocker`, default 9.0).
 - Rule metadata updated (OWASP Top 10 2021 wording, CWE-1035, Clean Code attribute).
 - Report iframe allows popups so external links (NVD, CVE) actually open.
+- Trimmed variants are JavaScript-free: toggles are removed and content is statically expanded (host-page CSP may block the report's inline scripts), local anchors in the Dependency column are stripped, and a header shows the analysed branch.
 
 # Dependency-Check Plugin for SonarQube Server 2025.x and up
 
